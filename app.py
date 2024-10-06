@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from db import Palabras, session
 
-app = FastAPI()
+app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
 
 # Acceso desde cualquier parte gracias al cors
 origin = ["*"]
@@ -16,7 +16,7 @@ app.add_middleware(
 )
 
 # API REST
-@app.get("/{palabra}", tags=["root"])
+@app.get("/api/{palabra}", tags=["root"])
 async def obtener_palabras(palabra: str):
     todo_query = session.query(Palabras).filter(Palabras.palabra_ingles == palabra.capitalize())
     todo = todo_query.first()
@@ -24,14 +24,14 @@ async def obtener_palabras(palabra: str):
         raise HTTPException(status_code=404, detail="palabra no encontrada")
     return todo
 
-@app.post("/", tags=["root"])
+@app.post("/api/", tags=["root"])
 async def introducir_palabras(palabra: str, traduccion: str):
     todo = Palabras(palabra_ingles=palabra.capitalize(), traduccion=traduccion)
     session.add(todo)
     session.commit()
     return {"Palabra agregada": {todo.palabra_ingles : todo.traduccion}}
 
-@app.put("/{palabra}", tags=["root"])
+@app.put("/api/{palabra}", tags=["root"])
 async def modificar_palabra(palabra:str, nuevaPalabra: str | None = None, nuevaTraduccion: str | None = None):
     todo_query = session.query(Palabras).filter(Palabras.palabra_ingles == palabra.capitalize())
     todo = todo_query.first()
@@ -61,7 +61,7 @@ async def modificar_palabra(palabra:str, nuevaPalabra: str | None = None, nuevaT
     todo = todo_query.first()
     return {"Palabra modificada" : todo}
 
-@app.delete("/{palabra}", tags=["root"])
+@app.delete("/api/{palabra}", tags=["root"])
 async def eliminar_palabra(palabra:str):
     todo_query = session.query(Palabras).filter(Palabras.palabra_ingles == palabra)
     todo = todo_query.first()
